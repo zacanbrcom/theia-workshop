@@ -4,7 +4,7 @@
     {
       "title": "Exercise-0: Build Theia Application",
       "done": true,
-      "details": "In this exercise, you learn:\n- the structure of a Theia extension project;\n- how to create Theia application, build and run it;\n- how to configure Theia extension with the dependency injection."
+      "details": "In this exercise, you learn:- the structure of a Theia extension project;- how to create dency injection."
     },
     {
       "title": "Exercise-1: Implement Open Handler",

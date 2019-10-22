@@ -1,6 +1,6 @@
 import * as React from "react";
 import { JSONSchema6 } from "json-schema";
-import Form, { IChangeEvent } from "react-jsonschema-form";
+import Form, { IChangeEvent, UiSchema } from "react-jsonschema-form";
 import * as jsoncparser from "jsonc-parser";
 import { MonacoTextModelService } from "@theia/monaco/lib/browser/monaco-text-model-service";
 import { MonacoEditorModel } from "@theia/monaco/lib/browser/monaco-editor-model";
@@ -10,6 +10,7 @@ import { ReferencedModelStorage } from "./referenced-model-storage";
 export class JsonschemaFormView extends React.Component<JsonschemaFormView.Props, JsonschemaFormView.State> {
 
     protected readonly schemaStorage: ReferencedModelStorage<JSONSchema6>;
+    protected readonly uiSchemaStorage: ReferencedModelStorage<UiSchema>;
 
     constructor(props: JsonschemaFormView.Props) {
         super(props);
@@ -17,25 +18,28 @@ export class JsonschemaFormView extends React.Component<JsonschemaFormView.Props
             schema: {
                 default: {}
             },
-            formData: {}
+            formData: {},
+            //initialized property with default object
+            uiSchema: {}
         }
         const { model, modelService } = props;
         this.schemaStorage = new ReferencedModelStorage(model, modelService, '$schema', { default: {} });
+        this.uiSchemaStorage = new ReferencedModelStorage(model, modelService, '$uiSchema', {});
+        //this.uiSchemaStorage = new ReferencedModelStorage(model, modelService, '$uiSchema', { default: {} });
+
     }
 
     render(): JSX.Element | null {
         // TODO: track and apply uiSchema to Form
-        // - Add `uiSchema` state to `JsonschemaFormView.State`.
-        //   - It should be of `UiSchema` type.
-        //   - Initialize it with an empty object `{}` in the constructor.
-        // - Pass `uiSchema` state as an attribute to `Form` react component.
-        // - Add a new instance of `ReferencedModelStorage` which tracks changes in `$uiSchema` attribute.
-        //   - Hint: Do it by analogy with `schemaStorage` property.
+
+
+
         //   - List to its changes in `componentWillMount` method and udpate `uiSchema` state accordingly.
         //   - Update the storage whenever the form data model is changed in `reconcileFormData` method.
-        const { schema, formData } = this.state;
+        const { schema, formData, uiSchema } = this.state;
         return <Form
             schema={schema}
+            uiSchema={uiSchema}
             formData={formData}
             onChange={this.submit}>
             <div />
@@ -60,8 +64,10 @@ export class JsonschemaFormView extends React.Component<JsonschemaFormView.Props
     protected readonly toDispose = new DisposableCollection();
     componentWillMount(): void {
         this.toDispose.push(this.schemaStorage);
+        this.toDispose.push(this.uiSchemaStorage);
         this.toDispose.push(this.schemaStorage.onDidChange(schema => this.setState({ schema })));
-
+        //PAY ATTENTION HERE.. this.uiSchemaStorage.onDidChange should be updated
+        this.toDispose.push(this.uiSchemaStorage.onDidChange(uiSchema => this.setState({ uiSchema })));
         this.reconcileFormData();
         this.toDispose.push(this.props.model.onDidChangeContent(() => this.reconcileFormData()));
     }
@@ -74,8 +80,10 @@ export class JsonschemaFormView extends React.Component<JsonschemaFormView.Props
 
     protected async reconcileFormData(): Promise<void> {
         const formData = jsoncparser.parse(jsoncparser.stripComments(this.props.model.getText())) || {};
+
         this.setState({ formData });
         this.schemaStorage.update(formData);
+        this.uiSchemaStorage.update(formData);
     }
 
 }
@@ -87,5 +95,6 @@ export namespace JsonschemaFormView {
     export interface State {
         schema: JSONSchema6
         formData: any
+        uiSchema: UiSchema
     }
 }

@@ -2,7 +2,7 @@
   "tasks": {
     "items": {
       "details": {
-        "ui:widget": "textarea"
+       "ui:widget": "textarea"
       }
     }
   }
