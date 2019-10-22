@@ -5,3 +5,21 @@ ports:
 github:
   prebuilds:
     branches: true
+tasks:
+  - init: yarn
+    command: |
+      gp sync-done init
+      cd jsonschema-form-extension
+      yarn watch
+  - command: |
+      gp sync-await init
+      cd browser-app
+      yarn watch
+    name: Watch browser-app
+    openMode: split-right
+  - command: |
+      gp sync-await init
+      cd browser-app
+      yarn start ../workspace
+    name: Run browser-app
+    openMode: tab-after
